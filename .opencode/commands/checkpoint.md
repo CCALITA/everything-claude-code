@@ -1,67 +1,78 @@
 ---
-description: Save verification state and progress checkpoint
-agent: build
+description: Checkpoint Command
 ---
 
 # Checkpoint Command
 
-Save current verification state and create progress checkpoint: $ARGUMENTS
+Create or verify a checkpoint in your workflow.
 
-## Your Task
+## Usage
 
-Create a snapshot of current progress including:
+`/checkpoint [create|verify|list] [name]`
 
-1. **Tests status** - Which tests pass/fail
-2. **Coverage** - Current coverage metrics
-3. **Build status** - Build succeeds or errors
-4. **Code changes** - Summary of modifications
-5. **Next steps** - What remains to be done
+## Create Checkpoint
 
-## Checkpoint Format
+When creating a checkpoint:
 
-### Checkpoint: [Timestamp]
+1. Run `/verify quick` to ensure current state is clean
+2. Create a git stash or commit with checkpoint name
+3. Log checkpoint to `.claude/checkpoints.log`:
 
-**Tests**
-- Total: X
-- Passing: Y
-- Failing: Z
-- Coverage: XX%
-
-**Build**
-- Status: ✅ Passing / ❌ Failing
-- Errors: [if any]
-
-**Changes Since Last Checkpoint**
-```
-git diff --stat [last-checkpoint-commit]
+```bash
+echo "$(date +%Y-%m-%d-%H:%M) | $CHECKPOINT_NAME | $(git rev-parse --short HEAD)" >> .claude/checkpoints.log
 ```
 
-**Completed Tasks**
-- [x] Task 1
-- [x] Task 2
-- [ ] Task 3 (in progress)
+4. Report checkpoint created
 
-**Blocking Issues**
-- [Issue description]
+## Verify Checkpoint
 
-**Next Steps**
-1. Step 1
-2. Step 2
+When verifying against a checkpoint:
 
-## Usage with Verification Loop
+1. Read checkpoint from log
+2. Compare current state to checkpoint:
+   - Files added since checkpoint
+   - Files modified since checkpoint
+   - Test pass rate now vs then
+   - Coverage now vs then
 
-Checkpoints integrate with the verification loop:
+3. Report:
+```
+CHECKPOINT COMPARISON: $NAME
+============================
+Files changed: X
+Tests: +Y passed / -Z failed
+Coverage: +X% / -Y%
+Build: [PASS/FAIL]
+```
+
+## List Checkpoints
+
+Show all checkpoints with:
+- Name
+- Timestamp
+- Git SHA
+- Status (current, behind, ahead)
+
+## Workflow
+
+Typical checkpoint flow:
 
 ```
-/plan → implement → /checkpoint → /verify → /checkpoint → implement → ...
+[Start] --> /checkpoint create "feature-start"
+   |
+[Implement] --> /checkpoint create "core-done"
+   |
+[Test] --> /checkpoint verify "core-done"
+   |
+[Refactor] --> /checkpoint create "refactor-done"
+   |
+[PR] --> /checkpoint verify "feature-start"
 ```
 
-Use checkpoints to:
-- Save state before risky changes
-- Track progress through phases
-- Enable rollback if needed
-- Document verification points
+## Arguments
 
----
-
-**TIP**: Create checkpoints at natural breakpoints: after each phase, before major refactoring, after fixing critical bugs.
+$ARGUMENTS:
+- `create <name>` - Create named checkpoint
+- `verify <name>` - Verify against named checkpoint
+- `list` - Show all checkpoints
+- `clear` - Remove old checkpoints (keeps last 5)

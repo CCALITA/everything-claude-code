@@ -1,68 +1,46 @@
 ---
-description: Review code for quality, security, and maintainability
+description: Code Review
 agent: code-reviewer
 subtask: true
 ---
 
-# Code Review Command
+# Code Review
 
-Review code changes for quality, security, and maintainability: $ARGUMENTS
+Comprehensive security and quality review of uncommitted changes:
 
-## Your Task
+1. Get changed files: git diff --name-only HEAD
 
-1. **Get changed files**: Run `git diff --name-only HEAD`
-2. **Analyze each file** for issues
-3. **Generate structured report**
-4. **Provide actionable recommendations**
+2. For each changed file, check for:
 
-## Check Categories
+**Security Issues (CRITICAL):**
+- Hardcoded credentials, API keys, tokens
+- SQL injection vulnerabilities
+- XSS vulnerabilities  
+- Missing input validation
+- Insecure dependencies
+- Path traversal risks
 
-### Security Issues (CRITICAL)
-- [ ] Hardcoded credentials, API keys, tokens
-- [ ] SQL injection vulnerabilities
-- [ ] XSS vulnerabilities
-- [ ] Missing input validation
-- [ ] Insecure dependencies
-- [ ] Path traversal risks
-- [ ] Authentication/authorization flaws
+**Code Quality (HIGH):**
+- Functions > 50 lines
+- Files > 800 lines
+- Nesting depth > 4 levels
+- Missing error handling
+- console.log statements
+- TODO/FIXME comments
+- Missing JSDoc for public APIs
 
-### Code Quality (HIGH)
-- [ ] Functions > 50 lines
-- [ ] Files > 800 lines
-- [ ] Nesting depth > 4 levels
-- [ ] Missing error handling
-- [ ] console.log statements
-- [ ] TODO/FIXME comments
-- [ ] Missing JSDoc for public APIs
+**Best Practices (MEDIUM):**
+- Mutation patterns (use immutable instead)
+- Emoji usage in code/comments
+- Missing tests for new code
+- Accessibility issues (a11y)
 
-### Best Practices (MEDIUM)
-- [ ] Mutation patterns (use immutable instead)
-- [ ] Unnecessary complexity
-- [ ] Missing tests for new code
-- [ ] Accessibility issues (a11y)
-- [ ] Performance concerns
+3. Generate report with:
+   - Severity: CRITICAL, HIGH, MEDIUM, LOW
+   - File location and line numbers
+   - Issue description
+   - Suggested fix
 
-### Style (LOW)
-- [ ] Inconsistent naming
-- [ ] Missing type annotations
-- [ ] Formatting issues
+4. Block commit if CRITICAL or HIGH issues found
 
-## Report Format
-
-For each issue found:
-
-```
-**[SEVERITY]** file.ts:123
-Issue: [Description]
-Fix: [How to fix]
-```
-
-## Decision
-
-- **CRITICAL or HIGH issues**: Block commit, require fixes
-- **MEDIUM issues**: Recommend fixes before merge
-- **LOW issues**: Optional improvements
-
----
-
-**IMPORTANT**: Never approve code with security vulnerabilities!
+Never approve code with security vulnerabilities!

@@ -1,75 +1,84 @@
 ---
-description: View learned instincts with confidence scores
-agent: build
+description: Show all learned instincts with their confidence levels
 ---
 
 # Instinct Status Command
 
-Display learned instincts and their confidence scores: $ARGUMENTS
+Shows all learned instincts with their confidence scores, grouped by domain.
 
-## Your Task
+## Implementation
 
-Read and display instincts from the continuous-learning-v2 system.
+Run the instinct CLI using the plugin root path:
 
-## Instinct Location
-
-Global: `~/.claude/instincts/`
-Project: `.claude/instincts/`
-
-## Status Display
-
-### Instinct Summary
-
-| Category | Count | Avg Confidence |
-|----------|-------|----------------|
-| Coding | X | 0.XX |
-| Testing | X | 0.XX |
-| Security | X | 0.XX |
-| Git | X | 0.XX |
-
-### High Confidence Instincts (>0.8)
-
-```
-[trigger] → [action] (confidence: 0.XX)
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/continuous-learning-v2/scripts/instinct-cli.py" status
 ```
 
-### Learning Progress
+Or if `CLAUDE_PLUGIN_ROOT` is not set (manual installation), use:
 
-- Total instincts: X
-- This session: X
-- Promoted to skills: X
-
-### Recent Instincts
-
-Last 5 instincts learned:
-
-1. **[timestamp]** - [trigger] → [action]
-2. **[timestamp]** - [trigger] → [action]
-...
-
-## Instinct Structure
-
-```json
-{
-  "id": "instinct-123",
-  "trigger": "When I see a try-catch without specific error type",
-  "action": "Suggest using specific error types for better handling",
-  "confidence": 0.75,
-  "applications": 5,
-  "successes": 4,
-  "source": "session-observation",
-  "timestamp": "2025-01-15T10:30:00Z"
-}
+```bash
+python3 ~/.claude/skills/continuous-learning-v2/scripts/instinct-cli.py status
 ```
 
-## Confidence Calculation
+## Usage
 
 ```
-confidence = (successes + 1) / (applications + 2)
+/instinct-status
+/instinct-status --domain code-style
+/instinct-status --low-confidence
 ```
 
-Bayesian smoothing ensures new instincts don't have extreme confidence.
+## What to Do
+
+1. Read all instinct files from `~/.claude/homunculus/instincts/personal/`
+2. Read inherited instincts from `~/.claude/homunculus/instincts/inherited/`
+3. Display them grouped by domain with confidence bars
+
+## Output Format
+
+```
+📊 Instinct Status
+==================
+
+## Code Style (4 instincts)
+
+### prefer-functional-style
+Trigger: when writing new functions
+Action: Use functional patterns over classes
+Confidence: ████████░░ 80%
+Source: session-observation | Last updated: 2025-01-22
+
+### use-path-aliases
+Trigger: when importing modules
+Action: Use @/ path aliases instead of relative imports
+Confidence: ██████░░░░ 60%
+Source: repo-analysis (github.com/acme/webapp)
+
+## Testing (2 instincts)
+
+### test-first-workflow
+Trigger: when adding new functionality
+Action: Write test first, then implementation
+Confidence: █████████░ 90%
+Source: session-observation
+
+## Workflow (3 instincts)
+
+### grep-before-edit
+Trigger: when modifying code
+Action: Search with Grep, confirm with Read, then Edit
+Confidence: ███████░░░ 70%
+Source: session-observation
 
 ---
+Total: 9 instincts (4 personal, 5 inherited)
+Observer: Running (last analysis: 5 min ago)
+```
 
-**TIP**: Use `/evolve` to cluster related instincts into skills when confidence is high.
+## Flags
+
+- `--domain <name>`: Filter by domain (code-style, testing, git, etc.)
+- `--low-confidence`: Show only instincts with confidence < 0.5
+- `--high-confidence`: Show only instincts with confidence >= 0.7
+- `--source <type>`: Filter by source (session-observation, repo-analysis, inherited)
+- `--json`: Output as JSON for programmatic use

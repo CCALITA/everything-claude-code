@@ -781,45 +781,47 @@ See [.cursor/README.md](.cursor/README.md) for details and [.cursor/MIGRATION.md
 
 ## 🔌 OpenCode Support
 
-ECC provides **full OpenCode support** including plugins and hooks.
+ECC keeps **Claude Code format as the source of truth** (`agents/`, `commands/`, `skills/`).
 
-### Quick Start
+This repo includes an **auto-converter** that generates an OpenCode config directory at `.opencode/`.
+
+### Quick Start (OpenCode)
 
 ```bash
 # Install OpenCode
 npm install -g opencode
 
-# Run in the repository root
+# Generate .opencode/ from Claude sources
+npm run opencode:convert
+
+# Use this repo's generated config in any project
+export OPENCODE_CONFIG_DIR="$PWD/.opencode"
+export OPENCODE_CONFIG="$PWD/.opencode/opencode.json"
 opencode
 ```
 
-The configuration is automatically detected from `.opencode/opencode.json`.
+MCP servers: `.opencode/opencode.json` includes an `mcp` section generated from `mcp-configs/mcp-servers.json`.
+All MCP servers are generated as `enabled: false` by default (to avoid token bloat + missing credentials). Enable only what you need.
+
+Tip: You can also copy the generated `.opencode/` directory into another repository and OpenCode will pick it up automatically.
 
 ### Feature Parity
 
 | Feature | Claude Code | OpenCode | Status |
 |---------|-------------|----------|--------|
-| Agents | ✅ 13 agents | ✅ 12 agents | **Claude Code leads** |
-| Commands | ✅ 31 commands | ✅ 24 commands | **Claude Code leads** |
-| Skills | ✅ 37 skills | ✅ 16 skills | **Claude Code leads** |
-| Hooks | ✅ 3 phases | ✅ 20+ events | **OpenCode has more!** |
-| Rules | ✅ 8 rules | ✅ 8 rules | **Full parity** |
-| MCP Servers | ✅ Full | ✅ Full | **Full parity** |
-| Custom Tools | ✅ Via hooks | ✅ Native support | **OpenCode is better** |
+| Agents | ✅ 13 agents | ✅ 13 agents (generated) | **Full parity** |
+| Commands | ✅ 31 commands | ✅ 31 commands (generated) | **Full parity** |
+| Skills | ✅ 37 skills | ✅ 37 skills (copied) | **Full parity** |
+| Hooks | ✅ 3 phases | ⚠️ Not converted yet | Planned |
+| Rules | ✅ 8 rules | ✅ Included via `.opencode/opencode.json` `instructions` | Full |
+| MCP Servers | ✅ Full | ⚠️ Manual (via `opencode.json`) | Partial |
+| Custom Tools | ✅ Via hooks | ⚠️ Not converted yet | Planned |
 
-### Hook Support via Plugins
+### Hooks / Plugins (Future)
 
-OpenCode's plugin system is MORE sophisticated than Claude Code with 20+ event types:
+OpenCode supports plugins with rich event hooks (e.g. `tool.execute.before`, `tool.execute.after`, `session.*`).
 
-| Claude Code Hook | OpenCode Plugin Event |
-|-----------------|----------------------|
-| PreToolUse | `tool.execute.before` |
-| PostToolUse | `tool.execute.after` |
-| Stop | `session.idle` |
-| SessionStart | `session.created` |
-| SessionEnd | `session.deleted` |
-
-**Additional OpenCode events**: `file.edited`, `file.watcher.updated`, `message.updated`, `lsp.client.diagnostics`, `tui.toast.show`, and more.
+This repo does not yet auto-convert `hooks/hooks.json` into `.opencode/plugins/*`.
 
 ### Available Commands (31)
 
@@ -857,32 +859,10 @@ OpenCode's plugin system is MORE sophisticated than Claude Code with 20+ event t
 | `/evolve` | Cluster instincts into skills |
 | `/setup-pm` | Configure package manager |
 
-### Plugin Installation
-
-**Option 1: Use directly**
-```bash
-cd everything-claude-code
-opencode
-```
-
-**Option 2: Install as npm package**
-```bash
-npm install ecc-universal
-```
-
-Then add to your `opencode.json`:
-```json
-{
-  "plugin": ["ecc-universal"]
-}
-```
-
 ### Documentation
 
-- **Migration Guide**: `.opencode/MIGRATION.md`
-- **OpenCode Plugin README**: `.opencode/README.md`
-- **Consolidated Rules**: `.opencode/instructions/INSTRUCTIONS.md`
-- **LLM Documentation**: `llms.txt` (complete OpenCode docs for LLMs)
+- Generated OpenCode config: `.opencode/GENERATED.md`
+- LLM documentation: `llms.txt`
 
 ---
 

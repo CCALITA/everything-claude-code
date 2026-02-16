@@ -1,102 +1,86 @@
 ---
-description: Remove dead code and consolidate duplicates
+description: Refactor Clean
 agent: refactor-cleaner
 subtask: true
 ---
 
-# Refactor Clean Command
+# Refactor Clean
 
-Analyze and clean up the codebase: $ARGUMENTS
+Safely identify and remove dead code with test verification at every step.
 
-## Your Task
+## Step 1: Detect Dead Code
 
-1. **Detect dead code** using analysis tools
-2. **Identify duplicates** and consolidation opportunities
-3. **Safely remove** unused code with documentation
-4. **Verify** no functionality broken
+Run analysis tools based on project type:
 
-## Detection Phase
+| Tool | What It Finds | Command |
+|------|--------------|---------|
+| knip | Unused exports, files, dependencies | `npx knip` |
+| depcheck | Unused npm dependencies | `npx depcheck` |
+| ts-prune | Unused TypeScript exports | `npx ts-prune` |
+| vulture | Unused Python code | `vulture src/` |
+| deadcode | Unused Go code | `deadcode ./...` |
+| cargo-udeps | Unused Rust dependencies | `cargo +nightly udeps` |
 
-### Run Analysis Tools
-
-```bash
-# Find unused exports
-npx knip
-
-# Find unused dependencies
-npx depcheck
-
-# Find unused TypeScript exports
-npx ts-prune
+If no tool is available, use Grep to find exports with zero imports:
+```
+# Find exports, then check if they're imported anywhere
 ```
 
-### Manual Checks
+## Step 2: Categorize Findings
 
-- Unused functions (no callers)
-- Unused variables
-- Unused imports
-- Commented-out code
-- Unreachable code
-- Unused CSS classes
+Sort findings into safety tiers:
 
-## Removal Phase
+| Tier | Examples | Action |
+|------|----------|--------|
+| **SAFE** | Unused utilities, test helpers, internal functions | Delete with confidence |
+| **CAUTION** | Components, API routes, middleware | Verify no dynamic imports or external consumers |
+| **DANGER** | Config files, entry points, type definitions | Investigate before touching |
 
-### Before Removing
+## Step 3: Safe Deletion Loop
 
-1. **Search for usage** - grep, find references
-2. **Check exports** - might be used externally
-3. **Verify tests** - no test depends on it
-4. **Document removal** - git commit message
+For each SAFE item:
 
-### Safe Removal Order
+1. **Run full test suite** — Establish baseline (all green)
+2. **Delete the dead code** — Use Edit tool for surgical removal
+3. **Re-run test suite** — Verify nothing broke
+4. **If tests fail** — Immediately revert with `git checkout -- <file>` and skip this item
+5. **If tests pass** — Move to next item
 
-1. Remove unused imports first
-2. Remove unused private functions
-3. Remove unused exported functions
-4. Remove unused types/interfaces
-5. Remove unused files
+## Step 4: Handle CAUTION Items
 
-## Consolidation Phase
+Before deleting CAUTION items:
+- Search for dynamic imports: `import()`, `require()`, `__import__`
+- Search for string references: route names, component names in configs
+- Check if exported from a public package API
+- Verify no external consumers (check dependents if published)
 
-### Identify Duplicates
+## Step 5: Consolidate Duplicates
 
-- Similar functions with minor differences
-- Copy-pasted code blocks
-- Repeated patterns
+After removing dead code, look for:
+- Near-duplicate functions (>80% similar) — merge into one
+- Redundant type definitions — consolidate
+- Wrapper functions that add no value — inline them
+- Re-exports that serve no purpose — remove indirection
 
-### Consolidation Strategies
+## Step 6: Summary
 
-1. **Extract utility function** - for repeated logic
-2. **Create base class** - for similar classes
-3. **Use higher-order functions** - for repeated patterns
-4. **Create shared constants** - for magic values
-
-## Verification
-
-After cleanup:
-
-1. `npm run build` - builds successfully
-2. `npm test` - all tests pass
-3. `npm run lint` - no new lint errors
-4. Manual smoke test - features work
-
-## Report Format
+Report results:
 
 ```
-Dead Code Analysis
-==================
-
-Removed:
-- file.ts: functionName (unused export)
-- utils.ts: helperFunction (no callers)
-
-Consolidated:
-- formatDate() and formatDateTime() → dateUtils.format()
-
-Remaining (manual review needed):
-- oldComponent.tsx: potentially unused, verify with team
+Dead Code Cleanup
+──────────────────────────────
+Deleted:   12 unused functions
+           3 unused files
+           5 unused dependencies
+Skipped:   2 items (tests failed)
+Saved:     ~450 lines removed
+──────────────────────────────
+All tests passing ✅
 ```
 
----
+## Rules
 
-**CAUTION**: Always verify before removing. When in doubt, ask or add `// TODO: verify usage` comment.
+- **Never delete without running tests first**
+- **One deletion at a time** — Atomic changes make rollback easy
+- **Skip if uncertain** — Better to keep dead code than break production
+- **Don't refactor while cleaning** — Separate concerns (clean first, refactor later)

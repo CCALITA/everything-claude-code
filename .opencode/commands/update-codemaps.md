@@ -1,81 +1,78 @@
 ---
-description: Update codemaps for codebase navigation
+description: Update Codemaps
 agent: doc-updater
 subtask: true
 ---
 
-# Update Codemaps Command
+# Update Codemaps
 
-Update codemaps to reflect current codebase structure: $ARGUMENTS
+Analyze the codebase structure and generate token-lean architecture documentation.
 
-## Your Task
+## Step 1: Scan Project Structure
 
-Generate or update codemaps in `docs/CODEMAPS/` directory:
+1. Identify the project type (monorepo, single app, library, microservice)
+2. Find all source directories (src/, lib/, app/, packages/)
+3. Map entry points (main.ts, index.ts, app.py, main.go, etc.)
 
-1. **Analyze codebase structure**
-2. **Generate component maps**
-3. **Document relationships**
-4. **Update navigation guides**
+## Step 2: Generate Codemaps
 
-## Codemap Types
+Create or update codemaps in `docs/CODEMAPS/` (or `.reports/codemaps/`):
 
-### Architecture Map
-```
-docs/CODEMAPS/ARCHITECTURE.md
-```
-- High-level system overview
-- Component relationships
-- Data flow diagrams
+| File | Contents |
+|------|----------|
+| `architecture.md` | High-level system diagram, service boundaries, data flow |
+| `backend.md` | API routes, middleware chain, service → repository mapping |
+| `frontend.md` | Page tree, component hierarchy, state management flow |
+| `data.md` | Database tables, relationships, migration history |
+| `dependencies.md` | External services, third-party integrations, shared libraries |
 
-### Module Map
-```
-docs/CODEMAPS/MODULES.md
-```
-- Module descriptions
-- Public APIs
-- Dependencies
+### Codemap Format
 
-### File Map
-```
-docs/CODEMAPS/FILES.md
-```
-- Directory structure
-- File purposes
-- Key files
+Each codemap should be token-lean — optimized for AI context consumption:
 
-## Codemap Format
+```markdown
+# Backend Architecture
 
-### [Module Name]
+## Routes
+POST /api/users → UserController.create → UserService.create → UserRepo.insert
+GET  /api/users/:id → UserController.get → UserService.findById → UserRepo.findById
 
-**Purpose**: [Brief description]
+## Key Files
+src/services/user.ts (business logic, 120 lines)
+src/repos/user.ts (database access, 80 lines)
 
-**Location**: `src/[path]/`
-
-**Key Files**:
-- `file1.ts` - [purpose]
-- `file2.ts` - [purpose]
-
-**Dependencies**:
-- [Module A]
-- [Module B]
-
-**Exports**:
-- `functionName()` - [description]
-- `ClassName` - [description]
-
-**Usage Example**:
-```typescript
-import { functionName } from '@/module'
+## Dependencies
+- PostgreSQL (primary data store)
+- Redis (session cache, rate limiting)
+- Stripe (payment processing)
 ```
 
-## Generation Process
+## Step 3: Diff Detection
 
-1. Scan directory structure
-2. Parse imports/exports
-3. Build dependency graph
-4. Generate markdown maps
-5. Validate links
+1. If previous codemaps exist, calculate the diff percentage
+2. If changes > 30%, show the diff and request user approval before overwriting
+3. If changes <= 30%, update in place
 
----
+## Step 4: Add Metadata
 
-**TIP**: Keep codemaps updated when adding new modules or significant refactoring.
+Add a freshness header to each codemap:
+
+```markdown
+<!-- Generated: 2026-02-11 | Files scanned: 142 | Token estimate: ~800 -->
+```
+
+## Step 5: Save Analysis Report
+
+Write a summary to `.reports/codemap-diff.txt`:
+- Files added/removed/modified since last scan
+- New dependencies detected
+- Architecture changes (new routes, new services, etc.)
+- Staleness warnings for docs not updated in 90+ days
+
+## Tips
+
+- Focus on **high-level structure**, not implementation details
+- Prefer **file paths and function signatures** over full code blocks
+- Keep each codemap under **1000 tokens** for efficient context loading
+- Use ASCII diagrams for data flow instead of verbose descriptions
+- Run after major feature additions or refactoring sessions
